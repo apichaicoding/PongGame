@@ -19,7 +19,7 @@ class PongGame extends SurfaceView implements Runnable{
     private int mFontSize ;
     private int mFontMargin ;
 //    private Bat mBat ;
-//    private Ball mBall ;
+    private Ball mBall ;
     private int mScore ;
     private int mLives ;
 
@@ -47,7 +47,7 @@ class PongGame extends SurfaceView implements Runnable{
     private void startNewGame(){
 //        mBall.reset(mScreenX, mScreenY);
         mScore = 0 ;
-        mLives = 99 ;
+        mLives = 3 ;
     }
 
     private void draw() {
@@ -103,7 +103,6 @@ class PongGame extends SurfaceView implements Runnable{
         mPlaying = true;
         mGameThread = new Thread(this);
         mGameThread.start();
-
     }
 
     private void update() {
