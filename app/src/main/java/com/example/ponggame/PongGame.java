@@ -47,7 +47,7 @@ class PongGame extends SurfaceView implements Runnable{
     private void startNewGame(){
 //        mBall.reset(mScreenX, mScreenY);
         mScore = 0 ;
-        mLives = 3 ;
+        mLives = 5 ;
     }
 
     private void draw() {
