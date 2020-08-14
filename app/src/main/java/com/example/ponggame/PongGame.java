@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.MotionEvent;
+import android.graphics.RectF;
 
 class PongGame extends SurfaceView implements Runnable{
     private final boolean DEBUGGING = true;
@@ -18,11 +20,10 @@ class PongGame extends SurfaceView implements Runnable{
     private int mScreenY ;
     private int mFontSize ;
     private int mFontMargin ;
-//    private Bat mBat ;
+    private Bat mBat ;
     private Ball mBall ;
     private int mScore ;
     private int mLives ;
-
     private Thread mGameThread = null;
     private volatile boolean mPlaying;
     private boolean mPaused = true;
@@ -30,35 +31,32 @@ class PongGame extends SurfaceView implements Runnable{
     //constructor
     public PongGame(Context context,int x, int y){
         super(context);
-
-//        mBall = new Ball(mScreenX);
         mScreenX = x;
         mScreenY = y ;
-
         mFontSize = mScreenX / 20 ;
         mFontMargin = mScreenX / 75;
-
         mOurHolder = getHolder() ;
         mPaint = new Paint();
-
+        mBall = new Ball(mScreenX);
+        mBat = new Bat(mScreenX, mScreenY);
         startNewGame();
     }
 
     private void startNewGame(){
-//        mBall.reset(mScreenX, mScreenY);
         mScore = 0 ;
-        mLives = 5 ;
+        mLives = 3 ;
+        mBall.reset(mScreenX, mScreenY);
     }
 
     private void draw() {
         if (mOurHolder.getSurface().isValid()) {
-//            mCanvas.drawRect(mBall.getRect(), mPaint);
-            mCanvas = mOurHolder.lockCanvas(); // Lock the canvas (graphics memory)
+            mCanvas = mOurHolder.lockCanvas();
             mCanvas.drawColor(Color.argb(255, 26, 128, 182));
             mPaint.setColor(Color.argb(255, 255, 255, 255));
             mPaint.setTextSize(mFontSize);
-            mCanvas.drawText("Score: " + mScore + " Lives: " + mLives,
-                    mFontMargin, mFontSize, mPaint);
+            mCanvas.drawRect(mBall.getRect(), mPaint);
+            mCanvas.drawRect(mBat.getRect(), mPaint);
+            mCanvas.drawText("Score: " + mScore + " Lives: " + mLives, mFontMargin, mFontSize, mPaint);
             if (DEBUGGING) {
                 printDebuggingText();
             }
@@ -70,8 +68,7 @@ class PongGame extends SurfaceView implements Runnable{
         int debugSize = mFontSize / 2;
         int debugStart = 150;
         mPaint.setTextSize(debugSize);
-        mCanvas.drawText("FPS: " + mFPS,
-                10, debugStart + debugSize, mPaint);
+        mCanvas.drawText("FPS: " + mFPS, 10, debugStart + debugSize, mPaint);
     }
 
     @Override
@@ -79,8 +76,8 @@ class PongGame extends SurfaceView implements Runnable{
         while (mPlaying) {
             long frameStartTime = System.currentTimeMillis();
             if(!mPaused){
-                update(); // update new positions
-                detectCollisions(); // detect collisions
+                update();
+                detectCollisions();
             }
             draw();
             long timeThisFrame = System.currentTimeMillis() - frameStartTime;
@@ -106,9 +103,55 @@ class PongGame extends SurfaceView implements Runnable{
     }
 
     private void update() {
-//        mBall.update(mFPS);
+        mBall.update(mFPS);
+        mBat.update(mFPS);
     }
 
     private void detectCollisions(){
+        if(RectF.intersects(mBat.getRect(), mBall.getRect())) {
+            mBall.batBounce(mBat.getRect());
+            mBall.increaseVelocity();
+            mScore+=1;
+        }
+        if(mBall.getRect().bottom > mScreenY){
+            mBall.reverseYVelocity();
+            mLives--;
+            if(mLives == 0){
+                mPaused = true;
+                startNewGame();
+            }
+        }
+        if(mBall.getRect().top < 0){
+            mBall.reverseYVelocity();
+        }
+        if(mBall.getRect().left < 0){
+            mBall.reverseXVelocity();
+        }
+        if(mBall.getRect().right > mScreenX){
+            mBall.reverseXVelocity();
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        switch
+        (motionEvent.getAction() &
+                MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                mPaused = false ;
+                if
+                (motionEvent.getX() > mScreenX / 2){
+                    mBat.setMovementState(mBat.RIGHT);
+                }
+                else
+                {
+                    mBat.setMovementState(mBat.LEFT);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                mBat.setMovementState(mBat.STOPPED);
+                break;
+        }
+        return true;
     }
 }

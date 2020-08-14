@@ -1,7 +1,7 @@
 package com.example.ponggame;
 import android.graphics.RectF;
 
-public class Ball {
+class Ball {
     private RectF mRect;
     private float mXVelocity;
     private float mYVelocity;
@@ -9,8 +9,8 @@ public class Ball {
     private float mBallHeight;
 
     Ball(int screenX){
-        mBallWidth = screenX / 100;
-        mBallHeight = screenX / 100;
+        mBallWidth = (screenX / 100)*5;
+        mBallHeight = (screenX / 100)*5;
         mRect = new RectF();
     }
 
